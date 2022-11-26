@@ -1,8 +1,6 @@
 package com.example.dh.service;
 
-import com.example.dh.repository.Books;
-import com.example.dh.repository.Users;
-import com.example.dh.repository.UsersRepository;
+import com.example.dh.repository.*;
 import com.example.dh.vo.UserVo;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -10,21 +8,26 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 @Service
 public class UserService {
 
     @Autowired
     UsersRepository ur;
+
+    @Autowired
+    BooksRepository br;
+
+    @Autowired
+    SearchHistoryRepository sr;
 
     public void join(UserVo uVo) {
         Users user = new Users(uVo.getId(), uVo.getPw(), uVo.getName());
@@ -43,16 +46,18 @@ public class UserService {
             return null;
         }
 
-        if(!user.getPw().equals(uVo.getPw())) {
+        if (!user.getPw().equals(uVo.getPw())) {
             return null;
         }
 
         return user;
     }
 
-    public List<Books> search(String search) throws IOException {
-        int page = 1;
+    @Transactional
+    public Map<String, Object> search(String search, int page, Users authUser) throws IOException {
+
         List<Books> lst = new ArrayList<>();
+        Map<String, Object> bMap = new HashMap<>();
 
         URL url = new URL("https://dapi.kakao.com/v3/search/book?target=title");
         HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
@@ -73,68 +78,61 @@ public class UserService {
                 : httpConn.getErrorStream();
         Scanner s = new Scanner(responseStream).useDelimiter("\\A");
         String response = s.hasNext() ? s.next() : "";
+
         JsonElement element = JsonParser.parseString(response);
+        String ans2 = element.getAsJsonObject().get("documents").toString();
+        JsonArray ans = (JsonArray) JsonParser.parseString(ans2);
 
-        while(!element.getAsJsonObject().get("meta").getAsJsonObject().get("is_end").getAsBoolean()) {
-            URL url2 = new URL("https://dapi.kakao.com/v3/search/book?target=title");
-            HttpURLConnection httpConn2 = (HttpURLConnection) url.openConnection();
-            httpConn2.setRequestMethod("GET");
-
-            httpConn2.setRequestProperty("Authorization", "KakaoAK 2b24f06df2137983cc98995c1ddce575");
-            httpConn2.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-            httpConn2.setDoOutput(true);
-            OutputStreamWriter writer2 = new OutputStreamWriter(httpConn2.getOutputStream());
-            writer2.write("query=" + search + "&page=" + page);
-            writer2.flush();
-            writer2.close();
-            httpConn2.getOutputStream().close();
-
-            InputStream responseStream2 = httpConn2.getResponseCode() / 100 == 2
-                    ? httpConn2.getInputStream()
-                    : httpConn2.getErrorStream();
-            Scanner s2 = new Scanner(responseStream2).useDelimiter("\\A");
-            String response2 = s2.hasNext() ? s2.next() : "";
-            JsonElement element2 = JsonParser.parseString(response2);
-            try {
-                String ans2 = element2.getAsJsonObject().get("documents").toString();
-                JsonArray ans = (JsonArray) JsonParser.parseString(ans2);
-                for (int i = 0; i < ans.size(); i++) {
-                    JsonObject obj = (JsonObject) ans.get(i);
-                    String authors = obj.getAsJsonObject().get("authors").toString();
-                    if (authors.equals("[]")) {
-                        continue;
-                    }
-                    String contents = obj.getAsJsonObject().get("contents").toString();
-                    String datetime = obj.getAsJsonObject().get("datetime").toString();
-                    String isbn = obj.getAsJsonObject().get("isbn").toString();
-                    String price = obj.getAsJsonObject().get("price").toString();
-                    String publisher = obj.getAsJsonObject().get("publisher").toString();
-                    String salePrice = obj.getAsJsonObject().get("sale_price").toString();
-                    String thumbnail = obj.getAsJsonObject().get("thumbnail").toString();
-                    thumbnail = thumbnail.substring(1);
-                    thumbnail = thumbnail.substring(0, thumbnail.length() - 1);
-                    String title = obj.getAsJsonObject().get("title").toString();
-                    Long no;
-                    if(page == 1) {
-                        no = new Long(i+1);
-                    } else {
-                        no = new Long((i+1)+((page-1)*10));
-                    }
-                    lst.add(new Books(no, title, thumbnail, contents, isbn, authors, publisher, datetime, price, salePrice));
-                }
-                if (element.getAsJsonObject().get("meta").getAsJsonObject().get("is_end").getAsBoolean() == false) {
-                    page = page + 1;
-                }
-            } catch (NullPointerException e) {
-                break;
+        for (int i = 0; i < ans.size(); i++) {
+            JsonObject obj = (JsonObject) ans.get(i);
+            String title = obj.getAsJsonObject().get("title").toString();
+            if (br.findByTitle(title) == null) {
+                String authors = obj.getAsJsonObject().get("authors").toString();
+                String contents = obj.getAsJsonObject().get("contents").toString().length() > 255
+                        ? obj.getAsJsonObject().get("contents").toString().substring(0, 255)
+                        : obj.getAsJsonObject().get("contents").toString();
+                String datetime = obj.getAsJsonObject().get("datetime").toString();
+                String isbn = obj.getAsJsonObject().get("isbn").toString();
+                String price = obj.getAsJsonObject().get("price").toString();
+                String publisher = obj.getAsJsonObject().get("publisher").toString();
+                String salePrice = obj.getAsJsonObject().get("sale_price").toString();
+                String thumbnail = obj.getAsJsonObject().get("thumbnail").toString();
+                thumbnail = thumbnail.substring(1);
+                thumbnail = thumbnail.substring(0, thumbnail.length() - 1);
+                lst.add(new Books(title, thumbnail, contents, isbn, authors, publisher, datetime, price, salePrice));
+                br.save(lst.get(i));
+            } else {
+                lst.add(br.findByTitle(title));
             }
-
         }
+        //page가 100이 넘어가면 kakao api request가 정상적으로 data를 주지 않는듯?
+        int totalPage = Integer.parseInt(element.getAsJsonObject().get("meta").getAsJsonObject().get("total_count").getAsString()) > 1000
+                ? 1000
+                : Integer.parseInt(element.getAsJsonObject().get("meta").getAsJsonObject().get("total_count").getAsString());
+
+        bMap.put("lst", lst);
+        bMap.put("totalPage", (int) Math.ceil((double) totalPage / 10));
+        bMap.put("search", search);
+        bMap.put("page", page);
+        SearchHistroy sh = new SearchHistroy(search, authUser.getNo());
+        sr.save(sh);
+        List<SearchHistroy> shList = sr.findAllByUserNo(authUser.getNo());
+        List<String> sList = new ArrayList<>();
+        for(int j=0;j<shList.size();j++) {
+            sList.add(shList.get(j).getWord());
+        }
+        bMap.put("searchList", sList);
 
 
-        return lst;
+
+        return bMap;
+
     }
 
-
+    @Transactional
+    public Books searchDeep(String title) {
+        Books books = br.findByTitle(title);
+        books.updateHit(books.getHit());
+        return books;
+    }
 }

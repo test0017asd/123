@@ -7,12 +7,10 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.util.Map;
 
 @Controller
 public class MainController {
@@ -70,8 +68,15 @@ public class MainController {
     }
 
     @RequestMapping("/search")
-    public String search(String search, Model model) throws IOException {
-        model.addAttribute("infoList", uService.search(search));
+    public String search(String search, int page, Model model) throws IOException {
+        Users authUser = (Users) ss.getAttribute("authUser");
+        Map<String, Object> bMap = uService.search(search.strip(), page, authUser);
+        model.addAttribute("infoList", bMap);
         return "/search.html";
+    }
+    @RequestMapping("/title")
+    public String searchDeep(String title, Model model) throws IOException {
+        model.addAttribute("info", uService.searchDeep(title));
+        return "/searchDeep.html";
     }
 }

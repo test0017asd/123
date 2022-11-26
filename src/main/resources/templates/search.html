@@ -3,39 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <title>검색 결과</title>
+    <style>
+        li {
+            list-style-type: none;
+        }
+        body {
+            text-align: center;
+        }
+        .table {
+            margin: 0px auto;
+        }
+        th, td {
+            border: 1px solid #bfbfbf;
+        }
+        a:visited {
+            color:black;
+            text-decoration: none;
+        }
+        a:link {
+            color: black;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: none;
+        }
+
+    </style>
 </head>
 <body>
 <h1><a href="/">main</a></h1>
-<table>
+<h2 th:text="${infoList.search}+'의 검색 결과입니다.'"></h2>
+<div class="aside" style="float:left;">
+    <p>검색 목록</p>
+    <ul th:each="search : ${infoList.searchList}">
+        <li th:text="${search}"></li>
+    </ul>
+</div>
+<table class="table" style="float:left; margin: 0px 0px 0px 400px;">
     <thead>
     <tr>
-        <th>번호</th>
+        <th style="width:50px;">번호</th>
+        <th style="width:50px;">썸네일</th>
         <th>제목</th>
-        <th>썸네일</th>
-        <th style="width:600px;">소개</th>
-        <th>ISBN</th>
-        <th>저자</th>
-        <th>출판사</th>
-        <th>출판일</th>
-        <th>정가</th>
-        <th>판매가</th>
+        <th>상세 페이지</th>
+        <th>조회수</th>
     </tr>
     </thead>
     <tbody>
-    <tr th:each="info : ${infoList}">
-        <td th:text="${info.no}"></td>
-        <td th:text="${info.title}"></td>
+    <tr th:each="info : ${infoList.lst}">
+        <td th:text="${infoStat.count}"></td>
         <td><img th:src="${info.thumbnail}"></td>
-        <td th:text="${info.contents}"></td>
-        <td th:text="${info.isbn}"></td>
-        <td th:text="${info.authors}"></td>
-        <td th:text="${info.publisher}"></td>
-        <td th:text="${info.datetime}"></td>
-        <td th:text="${info.price}"></td>
-        <td th:text="${info.salePrice}"></td>
+        <td th:text="${info.title}"></td>
+        <td><a th:href="@{/title(title=${info.title})}">상세 페이지</a></td>
+        <td th:text="${info.hit}"></td>
     </tr>
+
     </tbody>
 </table>
-</table>
+<div style="float:left;">
+    <div style="margin: 0px 0px 0px 10px; display: inline-block" th:each="num : ${#numbers.sequence(1, infoList.totalPage)}">
+        <a th:href="@{/search(search=${infoList.search}, page=${num})}" th:if="${infoList.page} == ${num}" th:text="${num}" style="font-weight: bold;"></a>
+        <a th:href="@{/search(search=${infoList.search}, page=${num})}" th:unless="${infoList.page} == ${num}" th:text="${num}"></a>
+    </div>
+</div>
 </body>
 </html>

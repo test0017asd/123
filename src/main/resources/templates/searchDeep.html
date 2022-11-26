@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${info.title}"></title>
+    <style>
+        body {
+            text-align: center;
+        }
+        .table {
+            margin: 0px auto;
+        }
+        th, td {
+            border: 1px solid #bfbfbf;
+        }
+        a:visited {
+            color:black;
+            text-decoration: none;
+        }
+        a:link {
+            color: black;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+<h1><a href="/">main</a></h1>
+<table class="table">
+    <thead>
+    <tr>
+        <th style="width:50px;">번호</th>
+        <th style="width:50px;">썸네일</th>
+        <th>제목</th>
+        <th style="width:600px;">소개</th>
+        <th>ISBN</th>
+        <th>저자</th>
+        <th>출판사</th>
+        <th>출판일</th>
+        <th>정가</th>
+        <th style="width:70px;">판매가</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td th:text="${info.no}"></td>
+        <td><img th:src="${info.thumbnail}"></td>
+        <td th:text="${info.title}"></td>
+        <td th:text="${info.contents}"></td>
+        <td th:text="${info.isbn}"></td>
+        <td th:text="${info.authors}"></td>
+        <td th:text="${info.publisher}"></td>
+        <td th:text="${info.datetime}"></td>
+        <td th:text="${info.price}"></td>
+        <td th:text="${info.salePrice}"></td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

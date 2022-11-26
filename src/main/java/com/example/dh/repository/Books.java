@@ -2,11 +2,10 @@ package com.example.dh.repository;
 
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @NoArgsConstructor
+@NonNull
 @Getter
 @Table(name = "books")
 @Entity
@@ -16,6 +15,9 @@ public class Books {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "no")
     private Long no;
+
+    @Column(name = "hit")
+    private int hit;
 
     @Column(name = "title")
     private String title;
@@ -45,8 +47,7 @@ public class Books {
     private String salePrice;
 
     @Builder
-    public Books(Long no, String title, String thumbnail, String contents, String isbn, String authors, String publisher, String datetime, String price, String salePrice) {
-        this.no = no;
+    public Books(String title, String thumbnail, String contents, String isbn, String authors, String publisher, String datetime, String price, String salePrice) {
         this.title = title;
         this.thumbnail = thumbnail;
         this.contents = contents;
@@ -56,6 +57,11 @@ public class Books {
         this.datetime = datetime;
         this.price = price;
         this.salePrice = salePrice;
+    }
+
+    public Books updateHit(int hit) {
+        this.hit = hit + 1;
+        return this;
     }
 
 }

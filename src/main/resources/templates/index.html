@@ -4,13 +4,14 @@
     <meta charset="UTF-8">
     <title>책 검색 서비스</title>
     <style>
+        li {
+            list-style-type: none;
+        }
         .nav {
             height: 150px;
-
         }
         .user {
             text-align: center;
-            list-style-type: none;
             margin: 50px 0px 0px 0px;
             float: right;
         }
@@ -49,15 +50,20 @@
         <li class="user-in"><a href="/logOut">로그아웃</a></li>
     </ul>
 </div>
+<div class="aside" style="float:left;">
+    <ul th:each="search : ${searchList}">
+        <li th:text="${search}"></li>
+    </ul>
+</div>
 <div class="main">
     <p>책 검색 시스템</p>
     <form action="/search" method="get">
         <input name="search" type="text">
+        <input name="page" type="hidden" value="1">
         <div>
         <button type="submit">검색</button>
         </div>
     </form>
-
 </div>
 </body>
 <script>

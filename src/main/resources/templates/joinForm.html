@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script th:src="@{/jquery-1.11.0.min.js}"></script>
+    <meta charset="UTF-8">
+    <title>회원가입</title>
+    <style>
+        body {
+            margin: 100px;
+        }
+        label {
+            display: inline-block;
+            width: 120px;
+            height: 30px;
+        }
+        #btn_submit {
+            margin: 50px 0px 0px 100px;
+            width: 150px;
+            height: 50px;
+        }
+        form {
+            margin: 0px 0px 0px 500px;
+        }
+    </style>
+</head>
+<body>
+<h1><a href="/">main</a></h1>
+    <form action="/joinOk" method="post">
+
+        <div class="join_group topborder">
+            <label for="id">아이디</label>
+            <input autocomplete="off" type="text" id="id" name="id">
+            <input type="hidden" id="id_chk_status" value="1">
+            <button type="button" id="id_check">중복확인</button>
+        </div>
+
+        <!-- 비밀번호 -->
+        <div class="join_group">
+            <label for="pw">비밀번호</label>
+            <input autocomplete="off" type="password" id="pw" name="pw">
+        </div>
+
+        <!-- 이름 -->
+        <div class="join_group">
+            <label for="name">이름</label>
+            <input autocomplete="off" type="text" id="name" name="name">
+        </div>
+
+
+        <button type="button" id="btn_submit">가입하기</button>
+    </form>
+</body>
+<script>
+
+    const submit = document.getElementById("btn_submit");
+    const idChk = document.getElementById("id_check")
+    idChk.addEventListener("click", function() {
+        const id = document.getElementById("id").value;
+        $.ajax({
+            url : "/idChk",
+            type : "post",
+            contentType : "application/json",
+            data : id,
+            dataType : "json",
+            success : function(result){
+                if (result != null) {
+                    alert("이미 존재하는 id입니다.");
+                }
+            },
+            error : function(XHR, status, error) {
+                alert("사용 가능한 id입니다.")
+                document.getElementById("id_chk_status").value = -1;
+                document.getElementById("id").setAttribute('readonly', true);
+                document.getElementById("id").setAttribute('style', "background-color:#bfbfbf");
+                return;
+            }
+        });
+    })
+    submit.addEventListener("click", function() {
+        const id = document.getElementById("id").value;
+        const pw = document.getElementById("pw").value;
+        const name = document.getElementById("name").value;
+        const idChk = document.getElementById("id_chk_status").value;
+        if (idChk == 1) {
+            alert("아이디 중복확인 후 다시 시도해 주세요.");
+        }
+        if (id==''||pw==''||name=='') {
+            alert("빈칸을 채운 후 다시 시도해 주세요.");
+        }
+        if (idChk == -1 && id!='' && pw!='' && name!=''){
+            submit.setAttribute('type', 'submit');
+        }
+    })
+</script>
+</html>

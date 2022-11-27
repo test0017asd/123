@@ -9,4 +9,6 @@ public interface SearchHistoryRepository extends JpaRepository<SearchHistroy, Lo
     public List<SearchHistroy> findAllByUserNo(Long userNo);
 
     public List<SearchHistroy> findAllByWordAndUserNo(String word, Long userNo);
+
+    public SearchHistroy findByWordAndUserNo(String word, Long userNo);
 }

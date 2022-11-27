@@ -2,7 +2,10 @@ package com.example.dh.repository;
 
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 
 @NoArgsConstructor
 @NonNull
@@ -15,9 +18,6 @@ public class Books {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "no")
     private Long no;
-
-    @Column(name = "hit")
-    private int hit;
 
     @Column(name = "title")
     private String title;
@@ -58,10 +58,4 @@ public class Books {
         this.price = price;
         this.salePrice = salePrice;
     }
-
-    public Books updateHit(int hit) {
-        this.hit = hit + 1;
-        return this;
-    }
-
 }

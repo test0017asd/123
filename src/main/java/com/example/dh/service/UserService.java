@@ -8,9 +8,11 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.naming.AuthenticationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -34,8 +36,12 @@ public class UserService {
     @Autowired
     SearchRankRepository srr;
 
+    @Autowired
+    PasswordEncoder encode;
+
     public void join(UserVo uVo) {
         Users user = new Users(uVo.getId(), uVo.getPw(), uVo.getName());
+        user.hashPw(encode);
         ur.save(user);
     }
 
@@ -47,11 +53,7 @@ public class UserService {
 
         Users user = ur.findByUserId(uVo.getId());
 
-        if (user == null) {
-            return null;
-        }
-
-        if (!user.getPw().equals(uVo.getPw())) {
+        if (user == null || !encode.matches(uVo.getPw(), user.getPw())) {
             return null;
         }
 
@@ -131,32 +133,39 @@ public class UserService {
         List<SearchRank> srList = srr.findAll(Sort.by(Sort.Direction.DESC, "hit"));
         bMap.put("searchRankList", srList);
 
-        SearchHistroy sh = null;
-        List<String> nsList = null;
         Date time = new Date();
         SimpleDateFormat now = new SimpleDateFormat("yyyy-MM-dd/HH:mm");
 
+        List<String> sList = new ArrayList<>();
+        List<String> tList = new ArrayList<>();
+        SearchHistroy sh = null;
         try {
             sh = new SearchHistroy(search, authUser.getNo());
-            shr.save(sh);
-            List<String> sList = new ArrayList<>();
+            SearchHistroy sh2 = shr.findByWordAndUserNo(search, authUser.getNo());
+            sh2.updateDate(now.format(time).toString());
+        } catch(NullPointerException e) {
+            if(sh != null) {
+                sh.updateDate(now.format(time).toString());
+                shr.save(sh);
+            }
+        }
+
+        try {
             List<SearchHistroy> shList = shr.findAllByUserNo(authUser.getNo());
             for (int i = 0; i < shList.size(); i++) {
-                sList.add(shList.get(i).getWord()+", "+now.format(time));
+                sList.add(shList.get(i).getWord());
+                tList.add(shList.get(i).getDate());
             }
-            Set<String> set = new HashSet<>(sList);
-             nsList = new ArrayList<>(set);
         } catch (NullPointerException e) {
         }
-        bMap.put("searchList", nsList);
+        bMap.put("searchList", sList);
+        bMap.put("searchListTime", tList);
 
         return bMap;
     }
 
     @Transactional
     public Books searchDeep(String title) {
-        Books books = br.findByTitle(title);
-        books.updateHit(books.getHit());
-        return books;
+        return br.findByTitle(title);
     }
 }

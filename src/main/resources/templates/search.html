@@ -35,13 +35,14 @@
 <h2 th:text="${infoList.search}+'의 검색 결과입니다.'"></h2>
 <div th:if="${session.authUser != null}" class="aside" style="float:left;">
     <p>검색 목록</p>
-    <ul th:each="search : ${infoList.searchList}">
-        <li class="search" th:text="${search}"></li>
+    <ul th:each="num : ${#numbers.sequence(0, infoList.searchList.size()-1)}">
+        <a th:href="@{/search(search=${infoList.searchList[num]}, page=1)}"><li class="search" th:text="${infoList.searchList[num]}+'/'+${infoList.searchListTime[num]}"></li></a>
     </ul>
 </div>
 <div style="float:left;">
+    <p>검색 순위</p>
     <ol th:each="sr : ${infoList.searchRankList}">
-        <li th:text="${srStat.count}+'위 '+${sr.search}"></li>
+        <a th:href="@{/search(search=${sr.search}, page=1)}"><li th:text="${srStat.count}+'위 '+${sr.search}+' '+${sr.hit}+'회'"></li></a>
     </ol>
 </div>
 <table class="table" style="float:left; margin: 0px 0px 0px 250px;">
@@ -51,7 +52,6 @@
         <th style="width:50px;">썸네일</th>
         <th>제목</th>
         <th>상세 페이지</th>
-        <th>조회수</th>
     </tr>
     </thead>
     <tbody>
@@ -60,9 +60,7 @@
         <td><img th:src="${info.thumbnail}"></td>
         <td th:text="${info.title}"></td>
         <td><a th:href="@{/title(title=${info.title})}">상세 페이지</a></td>
-        <td th:text="${info.hit}"></td>
     </tr>
-
     </tbody>
 </table>
 <div style="float: left; margin: 0px 0px 0px 300px;">

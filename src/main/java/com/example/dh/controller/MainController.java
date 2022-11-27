@@ -25,12 +25,12 @@ public class MainController {
 
     @RequestMapping(value = {"/", "/index"})
     public String main() {
-        return "/index.html";
+        return "index";
     }
 
     @RequestMapping("/joinForm")
     public String joinForm() {
-        return "/joinForm.html";
+        return "joinForm";
     }
 
     @ResponseBody
@@ -48,7 +48,7 @@ public class MainController {
 
     @RequestMapping("/login")
     public String login() {
-        return "/login.html";
+        return "login";
     }
 
     @RequestMapping("/loginOk")
@@ -75,11 +75,17 @@ public class MainController {
         Users authUser = (Users) ss.getAttribute("authUser");
         Map<String, Object> bMap = uService.search(search.strip(), page, authUser);
         model.addAttribute("infoList", bMap);
-        return "/search.html";
+        return "search";
     }
     @RequestMapping("/title")
-    public String searchDeep(String title, Model model) throws IOException {
+    public String searchDeep(String title, Model model) {
         model.addAttribute("info", uService.searchDeep(title));
-        return "/searchDeep.html";
+        return "searchDeep";
+    }
+
+    @RequestMapping("/test")
+    public  String test() throws IOException {
+        uService.test();
+        return "test";
     }
 }

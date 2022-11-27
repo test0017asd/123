@@ -7,12 +7,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.naming.AuthenticationException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
@@ -80,6 +81,25 @@ public class UserService {
         writer.close();
         httpConn.getOutputStream().close();
 
+        //test
+//        httpConn.getResponseCode() / 100 == 2
+//                ? InputStream responseStream = httpConn.getInputStream()
+//                :
+//        url = new URL("https://openapi.naver.com/v1/search/book.xml?query=%EC%A3%BC%EC%8B%9D&display=10&start=1");
+//        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+//        httpConn.setRequestMethod("GET");
+//
+//        httpConn.setRequestProperty("X-Naver-Client-Id", "{qV5ecALe5a860edopoSW}");
+//        httpConn.setRequestProperty("X-Naver-Client-Secret", "{qjegO5Kt__}");
+//
+//        InputStream responseStream = httpConn.getResponseCode() / 100 == 2
+//                ? httpConn.getInputStream()
+//                : httpConn.getErrorStream();
+//        Scanner s = new Scanner(responseStream).useDelimiter("\\A");
+//        String response = s.hasNext() ? s.next() : "";
+//        System.out.println(response);
+        //
+
         InputStream responseStream = httpConn.getResponseCode() / 100 == 2
                 ? httpConn.getInputStream()
                 : httpConn.getErrorStream();
@@ -130,7 +150,9 @@ public class UserService {
             SearchRank sr2 = srr.findBySearch(search);
             sr2.updateHit(sr2.getHit());
         }
-        List<SearchRank> srList = srr.findAll(Sort.by(Sort.Direction.DESC, "hit"));
+
+        Page<SearchRank> srList = srr.findAll(PageRequest.of(0, 10, Sort.by("hit").descending()));
+
         bMap.put("searchRankList", srList);
 
         Date time = new Date();
@@ -167,5 +189,21 @@ public class UserService {
     @Transactional
     public Books searchDeep(String title) {
         return br.findByTitle(title);
+    }
+
+    public void test() throws IOException{
+        URL url = new URL("https://openapi.naver.com/v1/search/book.xml?query=java&display=10&start=1");
+        HttpURLConnection httpConn = (HttpURLConnection) url.openConnection();
+        httpConn.setRequestMethod("GET");
+
+        httpConn.setRequestProperty("X-Naver-Client-Id", "qV5ecALe5a860edopoSW");
+        httpConn.setRequestProperty("X-Naver-Client-Secret", "qjegO5Kt__");
+
+        InputStream responseStream = httpConn.getResponseCode() / 100 == 2
+                ? httpConn.getInputStream()
+                : httpConn.getErrorStream();
+        Scanner s = new Scanner(responseStream).useDelimiter("\\A");
+        String response = s.hasNext() ? s.next() : "";
+        System.out.println(response);
     }
 }

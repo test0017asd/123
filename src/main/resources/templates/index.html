@@ -43,11 +43,11 @@
 <h1><a href="/">main</a></h1>
 <div class="nav">
     <ul th:if="${session.authUser == null}" class="user">
-        <li class="user-in"><a href="/login">로그인</a></li>
-        <li class="user-in"><a href="/joinForm">회원가입</a></li>
+        <li class="user-in"><a href="login">로그인</a></li>
+        <li class="user-in"><a href="joinForm">회원가입</a></li>
     </ul>
     <ul th:if="${session.authUser != null}" class="user">
-        <li class="user-in"><a href="/logOut">로그아웃</a></li>
+        <li class="user-in"><a href="logOut">로그아웃</a></li>
     </ul>
 </div>
 <div class="aside" style="float:left;">

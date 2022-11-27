@@ -7,6 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,6 +16,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Service
@@ -27,7 +29,10 @@ public class UserService {
     BooksRepository br;
 
     @Autowired
-    SearchHistoryRepository sr;
+    SearchHistoryRepository shr;
+
+    @Autowired
+    SearchRankRepository srr;
 
     public void join(UserVo uVo) {
         Users user = new Users(uVo.getId(), uVo.getPw(), uVo.getName());
@@ -114,19 +119,38 @@ public class UserService {
         bMap.put("totalPage", (int) Math.ceil((double) totalPage / 10));
         bMap.put("search", search);
         bMap.put("page", page);
-        SearchHistroy sh = new SearchHistroy(search, authUser.getNo());
-        sr.save(sh);
-        List<SearchHistroy> shList = sr.findAllByUserNo(authUser.getNo());
-        List<String> sList = new ArrayList<>();
-        for(int j=0;j<shList.size();j++) {
-            sList.add(shList.get(j).getWord());
+
+        SearchRank sr = new SearchRank(search);
+        if(srr.findBySearch(search)==null) {
+            srr.save(sr);
+            sr.updateHit(sr.getHit());
+        } else {
+            SearchRank sr2 = srr.findBySearch(search);
+            sr2.updateHit(sr2.getHit());
         }
-        bMap.put("searchList", sList);
+        List<SearchRank> srList = srr.findAll(Sort.by(Sort.Direction.DESC, "hit"));
+        bMap.put("searchRankList", srList);
 
+        SearchHistroy sh = null;
+        List<String> nsList = null;
+        Date time = new Date();
+        SimpleDateFormat now = new SimpleDateFormat("yyyy-MM-dd/HH:mm");
 
+        try {
+            sh = new SearchHistroy(search, authUser.getNo());
+            shr.save(sh);
+            List<String> sList = new ArrayList<>();
+            List<SearchHistroy> shList = shr.findAllByUserNo(authUser.getNo());
+            for (int i = 0; i < shList.size(); i++) {
+                sList.add(shList.get(i).getWord()+", "+now.format(time));
+            }
+            Set<String> set = new HashSet<>(sList);
+             nsList = new ArrayList<>(set);
+        } catch (NullPointerException e) {
+        }
+        bMap.put("searchList", nsList);
 
         return bMap;
-
     }
 
     @Transactional

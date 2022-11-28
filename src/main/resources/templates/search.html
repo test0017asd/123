@@ -8,9 +8,11 @@
             list-style-type: none;
         }
         body {
+            width:1440px;
             text-align: center;
+            margin: 0px auto;
         }
-        .table {
+        table {
             margin: 0px auto;
         }
         th, td {
@@ -28,24 +30,28 @@
             text-decoration: none;
         }
 
+        /* clearfix */
+        .clearfix{*zoom:1;}
+        .clearfix:before, .clearfix:after {display: block; content: '';line-height: 0;}
+        .clearfix:after {clear: both;}
     </style>
 </head>
 <body>
 <h1><a href="/">main</a></h1>
 <h2 th:text="${infoList.search}+'의 검색 결과입니다.'"></h2>
-<div th:if="${session.authUser != null}" class="aside" style="float:left;">
+<div th:if="${session.authUser != null}" style="float:left;" class="clearfix">
     <p>검색 목록</p>
     <ul th:each="num : ${#numbers.sequence(0, infoList.searchList.size()-1)}">
         <a th:href="@{/search(search=${infoList.searchList[num]}, page=1)}"><li class="search" th:text="${infoList.searchList[num]}+'/'+${infoList.searchListTime[num]}"></li></a>
     </ul>
 </div>
-<div style="float:left;">
+<div style="float:right;">
     <p>검색 순위</p>
     <ol th:each="sr : ${infoList.searchRankList}">
         <a th:href="@{/search(search=${sr.search}, page=1)}"><li th:text="${srStat.count}+'위 '+${sr.search}+' '+${sr.hit}+'회'"></li></a>
     </ol>
 </div>
-<table class="table" style="float:left; margin: 0px 0px 0px 250px;">
+<table class="clearfix" style="float:left;">
     <thead>
     <tr>
         <th style="width:50px;">번호</th>
@@ -63,8 +69,8 @@
     </tr>
     </tbody>
 </table>
-<div style="float: left; margin: 0px 0px 0px 300px;">
-    <div style="margin: 0px 0px 0px 10px; display: inline-block" th:each="num : ${#numbers.sequence(1, infoList.totalPage)}">
+<div style="float:left; margin: 0px 0px 0px 300px;">
+    <div style="margin: 0px 0px 0px 10px; float:left;" th:each="num : ${#numbers.sequence(1, infoList.totalPage)}">
         <a th:href="@{/search(search=${infoList.search}, page=${num})}" th:if="${infoList.page} == ${num}" th:text="${num}" style="font-weight: bold;"></a>
         <a th:href="@{/search(search=${infoList.search}, page=${num})}" th:unless="${infoList.page} == ${num}" th:text="${num}"></a>
     </div>

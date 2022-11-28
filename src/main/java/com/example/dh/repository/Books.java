@@ -2,10 +2,7 @@ package com.example.dh.repository;
 
 
 import jakarta.persistence.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.NonNull;
+import lombok.*;
 
 @NoArgsConstructor
 @NonNull

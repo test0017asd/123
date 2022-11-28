@@ -6,17 +6,13 @@ import com.example.dh.vo.UserVo;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
-import java.io.IOException;
-import java.util.Map;
-
 @Controller
-public class MainController {
+public class UserController {
 
     @Autowired
     UserService uService;
@@ -68,24 +64,5 @@ public class MainController {
         ss.removeAttribute("authUser");
         ss.invalidate();
         return "redirect:/";
-    }
-
-    @RequestMapping("/search")
-    public String search(String search, int page, Model model) throws IOException {
-        Users authUser = (Users) ss.getAttribute("authUser");
-        Map<String, Object> bMap = uService.search(search.strip(), page, authUser);
-        model.addAttribute("infoList", bMap);
-        return "search";
-    }
-    @RequestMapping("/title")
-    public String searchDeep(String title, Model model) {
-        model.addAttribute("info", uService.searchDeep(title));
-        return "searchDeep";
-    }
-
-    @RequestMapping("/test")
-    public  String test() throws IOException {
-        uService.test();
-        return "test";
     }
 }
